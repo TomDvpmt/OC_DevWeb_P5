@@ -1,3 +1,5 @@
+const productId = getProductId();
+
 displayProductPage();
 
 
@@ -6,11 +8,10 @@ displayProductPage();
  */
 
 async function displayProductPage() {
-    const productId = getProductId();
     const product = await getProduct(productId);
     setProductPageImg(product);
     setProductPageInfos(product);
-    setColorOptions(product);
+    setProductPageColorOptions(product);
 }
 
 
@@ -33,7 +34,7 @@ function setProductPageImg(product) {
   * NB : the image of the product is set with the setproductPageImg function
   * 
   * @param { Object } product 
-  * @const { Array } couples - array of arrays : [<DOM selector>, <innerText value>]
+  * @const { Array } couples - array of arrays : [<DOM selector>, <innerText>]
   */
 
 function setProductPageInfos(product) {
@@ -55,13 +56,14 @@ function setProductPageInfos(product) {
  * @param { Object } product 
  */
 
-function setColorOptions(product) {
+function setProductPageColorOptions(product) {
     const colors = product.colors;
     const colorsElement = document.querySelector("#colors");
+    const localLanguage = document.querySelector("html").lang;
     for(let color of colors) {
         const colorElement = document.createElement("option");
         colorElement.setAttribute("value", color);
-        colorElement.innerText = color;
+        colorElement.innerText = translateColor(color, "eng", "fr");
         colorsElement.append(colorElement);
     }
 }
@@ -111,3 +113,55 @@ function getSearchParams() {
 
 
 
+/**
+ * Gets a color name in user's local language from its name in english
+ * 
+ * @param { String } engColorString - Name of the color in english
+ * @return { String }
+ */
+
+function translateColor(color, langInitial, langFinal) {
+    const localColors = {
+        eng: {
+            black: "Black",
+            blackRed: "Black/Red",
+            blackYellow: "Black/Yellow",
+            blue: "Blue",
+            brown: "Brown",
+            green: "Green",
+            grey: "Grey",
+            navy: "Navy",
+            orange: "Orange",
+            pink: "Pink",
+            purple: "Purple",
+            red: "Red",
+            silver: "Silver",
+            white: "White",
+            yellow: "Yellow"
+        },
+        fr: {
+            black: "Noir",
+            blackRed: "Noir/Rouge",
+            blackYellow: "Noir/Jaune",
+            blue: "Bleu",
+            brown: "Marron",
+            green: "Vert",
+            grey: "Gris",
+            navy: "Bleu marine",
+            orange: "Orange",
+            pink: "Rose",
+            purple: "Violet",
+            red: "Rouge",
+            silver: "Argenté",
+            white: "Blanc",
+            yellow: "Jaune"
+        }
+    }
+
+    for(colorProperty in localColors[langInitial]) {
+        if(localColors[langInitial][colorProperty] === color) {
+            const translatedColor = localColors[langFinal][colorProperty];
+            return translatedColor ? translatedColor : color;
+        }
+    }
+}

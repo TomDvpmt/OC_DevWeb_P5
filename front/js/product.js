@@ -195,16 +195,16 @@ function setAddToCartListener() {
 
 
 /**
- * Stores the product in local storage
+ * Stores the product (id, color, quantity) in localStorage
  * 
  * @param { Object } productToAdd 
  */
 
 function addToCart(productToAdd) {
     let item = productToAdd;
-    let itemStorageNumber = localStorage.length + 1;
+    let itemStorageNumber = localStorage.length;
     
-    for(i = 1 ; i < localStorage.length + 1; i++) {
+    for(i = 0 ; i < localStorage.length; i++) {
         const storedItem = JSON.parse(localStorage.getItem(i));
         if(productToAdd.id === storedItem.id && productToAdd.color === storedItem.color) {
             item.quantity = parseInt(storedItem.quantity) + parseInt(productToAdd.quantity);
@@ -214,4 +214,6 @@ function addToCart(productToAdd) {
     }
     const stringifiedItem = JSON.stringify(item);
     localStorage.setItem(itemStorageNumber, stringifiedItem);
+
+    console.log(localStorage)
 }

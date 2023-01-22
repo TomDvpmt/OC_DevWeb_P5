@@ -31,7 +31,7 @@ function createProductElement(product) {
     
     const productImg = document.createElement("img");
     productImg.src = product.imageUrl;
-    productImg.setAttribute("alt", product.altTxt);
+    productImg.alt = product.altTxt;
 
     const productName = document.createElement("h3");
     productName.classList.add("productName");

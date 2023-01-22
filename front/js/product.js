@@ -1,6 +1,37 @@
+const localLanguage = document.querySelector("html").lang;
 const productId = getProductId();
 
 displayProductPage();
+
+
+
+
+/**
+ * Gets the product's id from URL's search parameters
+ * 
+ * @returns { Number }
+ */
+
+function getProductId() {
+    const searchParams = getSearchParams();
+    if(searchParams.has("id")) {
+        const productId = searchParams.get("id");
+        return productId;
+    }
+}
+
+
+/**
+ * Gets the search parameters from the URL
+ * 
+ * @returns { URLSearchParams }
+ */
+
+function getSearchParams() {
+    const currentUrl = new URL(window.location.href);
+    const searchParams = new URLSearchParams(currentUrl.search);
+    return searchParams;
+}
 
 
 /**
@@ -12,6 +43,21 @@ async function displayProductPage() {
     setProductPageImg(product);
     setProductPageInfos(product);
     setProductPageColorOptions(product);
+    setAddToCartListener();
+}
+
+
+/**
+ * Gets a single product from the API
+ * 
+ * @param { Integer } productId
+ * @returns { Promise } 
+ */
+
+async function getProduct(productId) {
+    const data = await fetch(`http://localhost:3000/api/products/${productId}`);
+    const product = data.json();
+    return product;
 }
 
 
@@ -59,65 +105,23 @@ function setProductPageInfos(product) {
 function setProductPageColorOptions(product) {
     const colors = product.colors;
     const colorsElement = document.querySelector("#colors");
-    const localLanguage = document.querySelector("html").lang;
+    
     for(let color of colors) {
         const colorElement = document.createElement("option");
         colorElement.setAttribute("value", color);
-        colorElement.innerText = translateColor(color, "eng", "fr");
+        colorElement.innerText = translateColor(color, "eng", localLanguage);
         colorsElement.append(colorElement);
     }
 }
 
 
 /**
- * Gets a single product from the API
+ * Translates a color's common name from a language to another
  * 
- * @param { Integer } productId
- * @return { Promise } 
- */
-
-async function getProduct(productId) {
-    const data = await fetch(`http://localhost:3000/api/products/${productId}`);
-    const product = data.json();
-    return product;
-}
-
-
-/**
- * Gets the product's id from URL's search parameters
- * 
- * @return { Number }
- */
-
-function getProductId() {
-    const searchParams = getSearchParams();
-    if(searchParams.has("id")) {
-        const productId = searchParams.get("id");
-        return productId;
-    }
-}
-
-
-/**
- * Gets the search parameters from the URL
- * 
- * @return { URLSearchParams }
- */
-
-function getSearchParams() {
-    const currentUrl = new URL(window.location.href);
-    const searchParams = new URLSearchParams(currentUrl.search);
-    return searchParams;
-}
-
-
-
-
-/**
- * Gets a color name in user's local language from its name in english
- * 
- * @param { String } engColorString - Name of the color in english
- * @return { String }
+ * @param { String } color - Common name of the color in the initial language (ex : "yellow")
+ * @param { String } langInitial - Code of the language to translate from (ex : "eng", "fr"...)
+ * @param { String } langFinal - Code of the language to translate to
+ * @returns { String }
  */
 
 function translateColor(color, langInitial, langFinal) {
@@ -164,4 +168,50 @@ function translateColor(color, langInitial, langFinal) {
             return translatedColor ? translatedColor : color;
         }
     }
+}
+
+
+/**
+ * Sets the event listener on the "Add to cart" button in product.html
+ */
+
+function setAddToCartListener() {
+    const addToCartButton = document.querySelector("#addToCart");
+
+    addToCartButton.addEventListener("click", () => {
+        const productColor = document.querySelector("#colors").value;
+        const productQuantity = document.querySelector("#quantity").value;
+        const productToAdd = {
+            id: productId, 
+            color: productColor, 
+            quantity: productQuantity
+        };
+
+        productColor === "" || productQuantity === "0" ?
+            console.log("Merci de choisir une couleur et une quantité pour ce produit.") :
+            addToCart(productToAdd);
+    });
+}
+
+
+/**
+ * Stores the product in local storage
+ * 
+ * @param { Object } productToAdd 
+ */
+
+function addToCart(productToAdd) {
+    let item = productToAdd;
+    let itemStorageNumber = localStorage.length + 1;
+    
+    for(i = 1 ; i < localStorage.length + 1; i++) {
+        const storedItem = JSON.parse(localStorage.getItem(i));
+        if(productToAdd.id === storedItem.id && productToAdd.color === storedItem.color) {
+            item.quantity = parseInt(storedItem.quantity) + parseInt(productToAdd.quantity);
+            itemStorageNumber = i;
+            break;
+        }
+    }
+    const stringifiedItem = JSON.stringify(item);
+    localStorage.setItem(itemStorageNumber, stringifiedItem);
 }

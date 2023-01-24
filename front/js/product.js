@@ -172,7 +172,10 @@ function translateColor(color, langInitial, langFinal) {
 
 
 /**
- * Sets the event listener on the "Add to cart" button in product.html
+ * Sets a "click" event listener on the "Add to cart" button
+ * On click :
+ *   - if quantity and color are both set, adds the item to the cart and send user to cart.html
+ *   - else does nothing
  */
 
 function setAddToCartListener() {
@@ -187,9 +190,10 @@ function setAddToCartListener() {
             quantity: productQuantity
         };
 
-        productColor === "" || productQuantity === "0" ?
-            console.log("Merci de choisir une couleur et une quantité pour ce produit.") :
+        if(productColor !== "" && productQuantity !== "0") {
             addToCart(productToAdd);
+            window.location.href = "cart.html";
+        }
     });
 }
 

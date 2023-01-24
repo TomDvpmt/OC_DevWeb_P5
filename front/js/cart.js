@@ -12,6 +12,7 @@ async function displayCart() {
     displayCartTotalQuantity();
     displayCartTotalPrice();
     setQuantityEventListener();
+    setDeleteItemEventListener();
 }
 
 
@@ -88,7 +89,7 @@ async function getProduct(productId) {
 
 
 /**
- * Sets total quantity in cart
+ * Displays cart total quantity
  */
 
 function displayCartTotalQuantity() {
@@ -106,8 +107,7 @@ function displayCartTotalQuantity() {
 
 
 /**
- * Sets total cart price
- * 
+ * Displays cart total price
  */
 
 function displayCartTotalPrice() {
@@ -143,8 +143,11 @@ function arraySum(array) {
 
 
 /**
- * Sets a "change" eventListener on each item quantity in the cart.
- * On change, updates the total quantity and the item's quantity in localStorage.
+ * Sets a "change" event listener on each item quantity in the cart.
+ * On change :
+ *   - displays new total quantity
+ *   - displays new total price
+ *   - updates the item's quantity in localStorage.
  */
 
 function setQuantityEventListener() {
@@ -186,6 +189,50 @@ function updateItemQuantityInLocalStorage(element, newQuantity) {
     }
 }
 
+
+/**
+ * Sets a "click" event listener on each "delete" button in the cart
+ * On click : 
+ *   - deletes item in localStorage
+ *   - deletes item in DOM
+ *   - updates total quantity and total price
+ */
+
+function setDeleteItemEventListener() {
+    const deleteItems = document.querySelectorAll(".deleteItem");
+    for(let deleteItem of deleteItems) {
+        deleteItem.addEventListener("click", () => {
+            
+            deleteItemInLocalStorage(deleteItem);
+            
+            const parentArticle = deleteItem.closest("article");
+            parentArticle.remove();
+            
+            displayCartTotalQuantity();
+            displayCartTotalPrice();
+        })
+    }
+}
+
+/**
+ * Deletes an item in localStorage
+ * 
+ * @param { HTMLElement } item 
+ */
+
+function deleteItemInLocalStorage(item) {
+    const itemToDelete = getIdAndColorOfElement(item);
+    for(i = 0 ; i < localStorage.length; i++) {
+        const storedItem = JSON.parse(localStorage.getItem(i));
+        if(itemToDelete.id === storedItem.id && itemToDelete.color === storedItem.color) {
+            localStorage.removeItem(i);
+            break;
+        }
+    }
+}
+
+
+
 /**
  * Gets the ID and color of an element's article parent
  * 
@@ -196,8 +243,8 @@ function updateItemQuantityInLocalStorage(element, newQuantity) {
 
 function getIdAndColorOfElement(element) {
     const parentElement = element.closest("article");
-    const itemId = parentElement.getAttribute("data-id");
-    const itemColor = parentElement.getAttribute("data-color");
+    const itemId = parentElement.dataset.id;
+    const itemColor = parentElement.dataset.color;
     return {itemId, itemColor}
 }
 

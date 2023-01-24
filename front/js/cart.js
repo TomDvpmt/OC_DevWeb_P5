@@ -1,6 +1,7 @@
 const localLanguage = document.querySelector("html").lang;
 
 displayCart();
+setFormEventListeners();
 
 
 /**
@@ -9,10 +10,10 @@ displayCart();
 
 async function displayCart() {
     await displayAllCartItems();
-    displayCartTotalQuantity();
-    displayCartTotalPrice();
     setQuantityEventListener();
     setDeleteItemEventListener();
+    displayCartTotalQuantity();
+    displayCartTotalPrice();
 }
 
 
@@ -249,7 +250,6 @@ function getIdAndColorOfElement(element) {
 }
 
 
-
 /**
  * Translates a color's common name from a language to another
  * 
@@ -303,4 +303,101 @@ function translateColor(color, langInitial, langFinal) {
             return translatedColor ? translatedColor : color;
         }
     }
+}
+
+function setFormEventListeners() {
+    setFormEventListener(firstName);
+    setFormEventListener(lastName);
+    setFormEventListener(address);
+    setFormEventListener(city);
+}
+
+
+
+/**
+ * 
+ * Sets an event listener on a text input of the form
+ * 
+ * @param { String } input 
+ */
+
+function setFormEventListener(input) {
+    const inputElement = document.querySelector(`#${input.name}`);
+    const inputErrorMsgElement = document.querySelector(`#${input.name}ErrorMsg`);
+    inputElement.addEventListener("change", (e) => {
+        if(!isValid(input.name, e.target.value)) {
+            displayInputErrorMsg(input.name, inputErrorMsgElement);
+        }
+        else{
+            inputErrorMsgElement.innerText = "";
+        } 
+    });
+}
+
+
+
+/**
+ * Tests if string given by user matches a regex
+ * 
+ * @param { String } inputName
+ * @param { String } stringToTest
+ * @returns { Boolean }
+ * 
+ * 
+ * ================== REGEX rules  ===========================
+ * 
+ * First name, last name and city regex : 
+ *   - first group of characters : 
+ *              starts with a letter
+ *              then optional letters, apostrophes or dashes
+ *   - then optional groups of letters, apostrophes, dashes or white spaces
+ *   - ends with a letter or an apostrophe
+ *   - case insensitive
+ *                                      
+ * Address regex :
+ *   - starts with an optional group of digits including optional comma and ending with white space
+ *   - then at least 1 group of letters
+ *   - then a white space
+ *   - then at least 1 group of characters (letter, dash, apostrophe or white space)
+ *   - ends with 4 or 5 digits (= zip code)
+ *   - case insensitive
+ * 
+ * ============================================================
+ */
+
+function isValid(inputName, stringToTest) {
+    const firstNameRegex = new RegExp(
+        "(^[a-zà-ÿ][a-zà-ÿ-']?)+([a-zà-ÿ-' ]+)?[a-zà-ÿ']$", "i"
+        );
+    const addressRegex = new RegExp(
+        "^([0-9]+[,]? )?[a-zà-ÿ]+ (([a-zà-ÿ]+ )?)+([a-zà-ÿ-' ]+)+ [0-9]{4,5}$", "i"
+        );
+    
+    const regexs = {
+        firstName: firstNameRegex,
+        lastName: firstNameRegex,
+        address: addressRegex,
+        city: firstNameRegex
+    }
+    
+    return regexs[inputName].test(stringToTest);
+}
+
+
+
+/**
+ * Displays the error message of an invalid input
+ * 
+ * @param { String } inputName 
+ */
+
+function displayInputErrorMsg(inputName, errorMsgElement) {
+    
+    const textErrorMessages = {
+        firstName: "Prénom invalide. Le prénom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
+        lastName: "Nom invalide. Le nom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
+        address: "Adresse invalide. N'oubliez pas le code postal à la fin.",
+        city: "Format invalide. Le nom de la ville doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces."
+    }
+    errorMsgElement.innerText = textErrorMessages[inputName];
 }

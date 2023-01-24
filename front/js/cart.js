@@ -1,6 +1,4 @@
 const localLanguage = document.querySelector("html").lang;
-const allQuantities = [];
-const allPrices = [];
 
 displayCart();
 
@@ -11,8 +9,9 @@ displayCart();
 
 async function displayCart() {
     await displayAllCartItems();
-    displayCartTotalQuantity(allQuantities);
-    displayCartTotalPrice(allPrices)
+    displayCartTotalQuantity();
+    displayCartTotalPrice();
+    setQuantityEventListener();
 }
 
 
@@ -48,7 +47,7 @@ async function displayCartItem(storageItem) {
     
     const cartItem = document.createElement("article");
     cartItem.classList.add("cart__item");
-    cartItem.setAttribute("data-id", product.id);
+    cartItem.setAttribute("data-id", storageItem.id);
     cartItem.setAttribute("data-color", storageItem.color);
     cartItem.innerHTML = `
         <div class="cart__item__img">
@@ -72,9 +71,6 @@ async function displayCartItem(storageItem) {
         </div>
     `;
     cart.append(cartItem);
-    allQuantities.push(storageItem.quantity);
-    const totalItemPrice = parseInt(product.price) * parseInt(storageItem.quantity);
-    allPrices.push(totalItemPrice);
 }
 
 /**
@@ -92,36 +88,117 @@ async function getProduct(productId) {
 
 
 /**
- * Sets total quantity in cart (adds all quantities)
- * 
- * @param { Array } allQuantities
+ * Sets total quantity in cart
  */
 
-function displayCartTotalQuantity(allQuantities) {
+function displayCartTotalQuantity() {
     const cartTotalQuantityElement = document.querySelector("#totalQuantity");
+    const allQuantities = [];
+    const allQuantityElements = document.querySelectorAll(".itemQuantity");
     
-    let totalQuantity = allQuantities.reduce(
-        (accumulator, currentValue) => parseInt(accumulator) + parseInt(currentValue),
-        0
-    )
+    for(let quantityElement of allQuantityElements) {
+        allQuantities.push(quantityElement.value);
+    }
+
+    let totalQuantity = arraySum(allQuantities);
     cartTotalQuantityElement.innerText = totalQuantity;
 }
 
 
 /**
- * Sets total cart price (adds all prices)
+ * Sets total cart price
  * 
- * @param { Array } allPrices
  */
 
-function displayCartTotalPrice(allPrices) {
+function displayCartTotalPrice() {
     const cartTotalPriceElement = document.querySelector("#totalPrice");
+    const allPrices = [];
+    const allPriceElements = document.querySelectorAll(".cart__item__content__description p:last-child");
 
-    let totalPrice = allPrices.reduce(
+    for(let priceElement of allPriceElements) {
+        const parentElement = priceElement.closest("article");
+        const quantityElement = parentElement.querySelector("input");
+        const itemTotalPrice = parseInt(priceElement.innerText) * parseInt(quantityElement.value);
+        allPrices.push(itemTotalPrice);
+    }
+
+    let totalPrice = arraySum(allPrices);
+    cartTotalPriceElement.innerText = totalPrice;
+}
+
+/**
+ * Gets the sum of an array's values
+ * 
+ * @param { Array } array
+ * @returns { Number }
+ */
+
+function arraySum(array) {
+    const total = array.reduce(
         (accumulator, currentValue) => parseInt(accumulator) + parseInt(currentValue),
         0
     )
-    cartTotalPriceElement.innerText = totalPrice;
+    return total;
+}
+
+
+/**
+ * Sets a "change" eventListener on each item quantity in the cart.
+ * On change, updates the total quantity and the item's quantity in localStorage.
+ */
+
+function setQuantityEventListener() {
+    const itemQuantityElements = document.querySelectorAll(".itemQuantity");
+    for(let itemQuantityElement of itemQuantityElements) {
+        itemQuantityElement.addEventListener("change", (e) => {
+            displayCartTotalQuantity();
+            displayCartTotalPrice();
+            
+            const itemNewQuantity = parseInt(e.target.value);
+            updateItemQuantityInLocalStorage(itemQuantityElement, itemNewQuantity);
+        })
+    }
+};
+
+
+/**
+ * Updates an item's quantity in localStorage
+ * 
+ * @param { HTMLElement } element 
+ * @param { Integer } newQuantity 
+ */
+
+function updateItemQuantityInLocalStorage(element, newQuantity) {
+    const item = getIdAndColorOfElement(element);
+    const updatedProduct = {
+        id: item.id,
+        color: item.color,
+        quantity: newQuantity
+    }
+    for(i = 0 ; i < localStorage.length; i++) {
+        const storedItem = JSON.parse(localStorage.getItem(i));
+        if(updatedProduct.id === storedItem.id && updatedProduct.color === storedItem.color) {
+            storedItem.quantity = parseInt(updatedProduct.quantity);
+            const stringifiedItem = JSON.stringify(storedItem);
+            localStorage.setItem(i, stringifiedItem);
+            break;
+        }
+    }
+}
+
+/**
+ * Gets the ID and color of an element's article parent
+ * 
+ * @param { HTMLElement } element 
+ * @returns { Object }
+ */
+
+
+function getIdAndColorOfElement(element) {
+    const parentElement = element.closest("article");
+    const itemId = parentElement.getAttribute("data-id");
+    const itemColor = parentElement.getAttribute("data-color");
+    return {itemId, itemColor}
 }
 
 
@@ -130,7 +207,7 @@ function displayCartTotalPrice(allPrices) {
  * Translates a color's common name from a language to another
  * 
  * @param { String } color - Common name of the color in the initial language (ex : "yellow")
- * @param { String } langInitial - Code of the language to translate from (ex : "eng", "fr"...)
+ * @param { String } langInitial - Code of the language to translate from (ex : "eng")
  * @param { String } langFinal - Code of the language to translate to
  * @returns { String }
  */

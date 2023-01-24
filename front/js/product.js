@@ -119,7 +119,7 @@ function setProductPageColorOptions(product) {
  * Translates a color's common name from a language to another
  * 
  * @param { String } color - Common name of the color in the initial language (ex : "yellow")
- * @param { String } langInitial - Code of the language to translate from (ex : "eng", "fr"...)
+ * @param { String } langInitial - Code of the language to translate from (ex : "eng")
  * @param { String } langFinal - Code of the language to translate to
  * @returns { String }
  */
@@ -214,6 +214,4 @@ function addToCart(productToAdd) {
     }
     const stringifiedItem = JSON.stringify(item);
     localStorage.setItem(itemStorageNumber, stringifiedItem);
-
-    console.log(localStorage)
 }

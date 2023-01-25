@@ -83,9 +83,70 @@ async function displayCartItem(storageItem) {
  */
 
 async function getProduct(productId) {
-    const data = await fetch(`http://localhost:3000/api/products/${productId}`);
-    const product = data.json();
-    return product;
+    try {
+        const data = await fetch(`http://localhost:3000/api/products/${productId}`);
+        const product = data.json();
+        return product;
+    }
+    catch (error) {
+        alert("Impossible de contacter le serveur, les produits du panier ne pourront pas être affichés.");
+    }
+    
+}
+
+/**
+ * Translates a color's common name from a language to another
+ * 
+ * @param { String } color - Common name of the color in the initial language (ex : "yellow")
+ * @param { String } langInitial - Code of the language to translate from (ex : "eng")
+ * @param { String } langFinal - Code of the language to translate to
+ * @returns { String }
+ */
+
+function translateColor(color, langInitial, langFinal) {
+    const localColors = {
+        eng: {
+            black: "Black",
+            blackRed: "Black/Red",
+            blackYellow: "Black/Yellow",
+            blue: "Blue",
+            brown: "Brown",
+            green: "Green",
+            grey: "Grey",
+            navy: "Navy",
+            orange: "Orange",
+            pink: "Pink",
+            purple: "Purple",
+            red: "Red",
+            silver: "Silver",
+            white: "White",
+            yellow: "Yellow"
+        },
+        fr: {
+            black: "Noir",
+            blackRed: "Noir/Rouge",
+            blackYellow: "Noir/Jaune",
+            blue: "Bleu",
+            brown: "Marron",
+            green: "Vert",
+            grey: "Gris",
+            navy: "Bleu marine",
+            orange: "Orange",
+            pink: "Rose",
+            purple: "Violet",
+            red: "Rouge",
+            silver: "Argenté",
+            white: "Blanc",
+            yellow: "Jaune"
+        }
+    }
+
+    for(colorProperty in localColors[langInitial]) {
+        if(localColors[langInitial][colorProperty] === color) {
+            const translatedColor = localColors[langFinal][colorProperty];
+            return translatedColor ? translatedColor : color;
+        }
+    }
 }
 
 
@@ -251,59 +312,8 @@ function getIdAndColorOfElement(element) {
 
 
 /**
- * Translates a color's common name from a language to another
- * 
- * @param { String } color - Common name of the color in the initial language (ex : "yellow")
- * @param { String } langInitial - Code of the language to translate from (ex : "eng")
- * @param { String } langFinal - Code of the language to translate to
- * @returns { String }
+ * Sets event listeners on inputs in the form
  */
-
-function translateColor(color, langInitial, langFinal) {
-    const localColors = {
-        eng: {
-            black: "Black",
-            blackRed: "Black/Red",
-            blackYellow: "Black/Yellow",
-            blue: "Blue",
-            brown: "Brown",
-            green: "Green",
-            grey: "Grey",
-            navy: "Navy",
-            orange: "Orange",
-            pink: "Pink",
-            purple: "Purple",
-            red: "Red",
-            silver: "Silver",
-            white: "White",
-            yellow: "Yellow"
-        },
-        fr: {
-            black: "Noir",
-            blackRed: "Noir/Rouge",
-            blackYellow: "Noir/Jaune",
-            blue: "Bleu",
-            brown: "Marron",
-            green: "Vert",
-            grey: "Gris",
-            navy: "Bleu marine",
-            orange: "Orange",
-            pink: "Rose",
-            purple: "Violet",
-            red: "Rouge",
-            silver: "Argenté",
-            white: "Blanc",
-            yellow: "Jaune"
-        }
-    }
-
-    for(colorProperty in localColors[langInitial]) {
-        if(localColors[langInitial][colorProperty] === color) {
-            const translatedColor = localColors[langFinal][colorProperty];
-            return translatedColor ? translatedColor : color;
-        }
-    }
-}
 
 function setFormEventListeners() {
     setFormEventListener(firstName);
@@ -355,10 +365,8 @@ function setFormEventListener(input) {
  *   - case insensitive
  *                                      
  * Address regex :
- *   - starts with an optional group of digits including optional comma and ending with white space
- *   - then at least 1 group of letters
- *   - then a white space
- *   - then at least 1 group of characters (letter, dash, apostrophe or white space)
+ *   - starts with an optional group of digits including optional comma and ending with a white space
+ *   - then at least 1 group of letters or dash or apostrophe ending with a white space
  *   - ends with 4 or 5 digits (= zip code)
  *   - case insensitive
  * 
@@ -370,7 +378,7 @@ function isValid(inputName, stringToTest) {
         "(^[a-zà-ÿ][a-zà-ÿ-']?)+([a-zà-ÿ-' ]+)?[a-zà-ÿ']$", "i"
         );
     const addressRegex = new RegExp(
-        "^([0-9]+[,]? )?[a-zà-ÿ]+ (([a-zà-ÿ]+ )?)+([a-zà-ÿ-' ]+)+ [0-9]{4,5}$", "i"
+        "^([0-9]+[,]? )?([a-zà-ÿ-']+ )+[0-9]{4,5}$", "i"
         );
     
     const regexs = {

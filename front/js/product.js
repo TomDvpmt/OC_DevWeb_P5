@@ -55,9 +55,15 @@ async function displayProductPage() {
  */
 
 async function getProduct(productId) {
-    const data = await fetch(`http://localhost:3000/api/products/${productId}`);
-    const product = data.json();
-    return product;
+    try {
+        const data = await fetch(`http://localhost:3000/api/products/${productId}`);
+        const product = data.json();
+        return product;
+    } 
+    catch(e) {
+        alert("Impossible de contacter le serveur, le produit ne pourra pas être affiché.");
+    }
+    
 }
 
 

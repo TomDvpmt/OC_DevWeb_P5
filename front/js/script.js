@@ -9,6 +9,9 @@ function createAllProductsElements() {
         for(product of allProducts) {
             createProductElement(product);
         }
+    })
+    .catch(() => {
+        alert("Impossible de contacter le serveur, les produits ne pourront pas être affichés.")
     });
 }
 

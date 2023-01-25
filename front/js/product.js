@@ -211,17 +211,20 @@ function setAddToCartListener() {
  */
 
 function addToCart(productToAdd) {
-    let item = productToAdd;
-    let itemStorageNumber = localStorage.length;
-    
-    for(i = 0 ; i < localStorage.length; i++) {
-        const storedItem = JSON.parse(localStorage.getItem(i));
-        if(productToAdd.id === storedItem.id && productToAdd.color === storedItem.color) {
-            item.quantity = parseInt(storedItem.quantity) + parseInt(productToAdd.quantity);
-            itemStorageNumber = i;
-            break;
+    const productToAddStorageId = `${productToAdd.id}-${productToAdd.color}`;
+    if(localStorage.length != 0) {
+        for(key in localStorage) {
+            if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
+                continue;
+            }
+            const parsedItem = JSON.parse(localStorage.getItem(key));
+            const storedItemStorageId = `${parsedItem.id}-${parsedItem.color}`
+            if(productToAddStorageId === storedItemStorageId) {
+                productToAdd.quantity = parseInt(parsedItem.quantity) + parseInt(productToAdd.quantity);
+                break;
+            }
         }
     }
-    const stringifiedItem = JSON.stringify(item);
-    localStorage.setItem(itemStorageNumber, stringifiedItem);
+    const stringifiedItem = JSON.stringify(productToAdd);
+    localStorage.setItem(productToAddStorageId, stringifiedItem);
 }

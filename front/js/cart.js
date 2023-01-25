@@ -22,15 +22,12 @@ async function displayCart() {
  */
 
 async function displayAllCartItems() {
-
-    const storageItems = [];
-    for(i = 0 ; i < localStorage.length ; i++) {
-        const storageItem = JSON.parse(localStorage.getItem(i));
-        storageItems.push(storageItem);
-    }
-    
-    for(let storageItem of storageItems) {
-        await displayCartItem(storageItem);
+    for(let key in localStorage) {
+        if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
+            continue;
+        }
+        const parsedItem = JSON.parse(localStorage.getItem(key));
+        await displayCartItem(parsedItem);
     }
 }
 
@@ -38,19 +35,17 @@ async function displayAllCartItems() {
 /**
  * Displays an item in the cart from an item in localStorage
  * 
- * @param { Object } storageItem
+ * @param { Object } parsedItem
  */
 
-async function displayCartItem(storageItem) {
-
+async function displayCartItem(parsedItem) {
     const cart = document.querySelector("#cart__items");
-    
-    const product = await getProduct(storageItem.id);
+    const product = await getProduct(parsedItem.id);
     
     const cartItem = document.createElement("article");
     cartItem.classList.add("cart__item");
-    cartItem.setAttribute("data-id", storageItem.id);
-    cartItem.setAttribute("data-color", storageItem.color);
+    cartItem.setAttribute("data-id", parsedItem.id);
+    cartItem.setAttribute("data-color", parsedItem.color);
     cartItem.innerHTML = `
         <div class="cart__item__img">
         <img src="${product.imageUrl}" alt="${product.altTxt}">
@@ -58,13 +53,13 @@ async function displayCartItem(storageItem) {
         <div class="cart__item__content">
         <div class="cart__item__content__description">
             <h2>${product.name}</h2>
-            <p>${translateColor(storageItem.color, "eng", localLanguage)}</p>
+            <p>${translateColor(parsedItem.color, "eng", localLanguage)}</p>
             <p>${product.price} €</p>
         </div>
         <div class="cart__item__content__settings">
             <div class="cart__item__content__settings__quantity">
             <p>Qté : </p>
-            <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${storageItem.quantity}">
+            <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${parsedItem.quantity}">
             </div>
             <div class="cart__item__content__settings__delete">
             <p class="deleteItem">Supprimer</p>
@@ -78,7 +73,7 @@ async function displayCartItem(storageItem) {
 /**
  * Gets a single product from the API
  * 
- * @param { Integer } productId
+ * @param { String } productId
  * @returns { Promise } 
  */
 
@@ -220,7 +215,9 @@ function setQuantityEventListener() {
             displayCartTotalPrice();
             
             const itemNewQuantity = parseInt(e.target.value);
+
             updateItemQuantityInLocalStorage(itemQuantityElement, itemNewQuantity);
+            console.log(localStorage)
         })
     }
 };
@@ -236,18 +233,22 @@ function setQuantityEventListener() {
 function updateItemQuantityInLocalStorage(element, newQuantity) {
     const item = getIdAndColorOfElement(element);
     const updatedProduct = {
-        id: item.id,
-        color: item.color,
+        id: item.itemId,
+        color: item.itemColor,
         quantity: newQuantity
     }
-    for(i = 0 ; i < localStorage.length; i++) {
-        const storedItem = JSON.parse(localStorage.getItem(i));
-        if(updatedProduct.id === storedItem.id && updatedProduct.color === storedItem.color) {
-            storedItem.quantity = parseInt(updatedProduct.quantity);
-            const stringifiedItem = JSON.stringify(storedItem);
-            localStorage.setItem(i, stringifiedItem);
-            break;
+    const updatedProductStorageId = `${updatedProduct.id}-${updatedProduct.color}`;
+    for(key in localStorage) {
+        if(!localStorage.hasOwnProperty(key)) {
+            continue;
         }
+        const parsedItem = JSON.parse(localStorage.getItem(key));
+        const storedItemStorageId = `${parsedItem.id}-${parsedItem.color}`;
+        if(updatedProductStorageId === storedItemStorageId) {
+            parsedItem.quantity = parseInt(updatedProduct.quantity);
+            const stringifiedItem = JSON.stringify(parsedItem);
+            localStorage.setItem(updatedProductStorageId, stringifiedItem);
+        }    
     }
 }
 
@@ -266,12 +267,14 @@ function setDeleteItemEventListener() {
         deleteItem.addEventListener("click", () => {
             
             deleteItemInLocalStorage(deleteItem);
-            
+
             const parentArticle = deleteItem.closest("article");
             parentArticle.remove();
             
             displayCartTotalQuantity();
             displayCartTotalPrice();
+            
+            console.log(localStorage)
         })
     }
 }
@@ -284,13 +287,10 @@ function setDeleteItemEventListener() {
 
 function deleteItemInLocalStorage(item) {
     const itemToDelete = getIdAndColorOfElement(item);
-    for(i = 0 ; i < localStorage.length; i++) {
-        const storedItem = JSON.parse(localStorage.getItem(i));
-        if(itemToDelete.id === storedItem.id && itemToDelete.color === storedItem.color) {
-            localStorage.removeItem(i);
-            break;
-        }
-    }
+    console.log(itemToDelete)
+    const itemToDeleteStorageId = `${itemToDelete.itemId}-${itemToDelete.itemColor}`
+
+    localStorage.removeItem(itemToDeleteStorageId);
 }
 
 
@@ -316,10 +316,11 @@ function getIdAndColorOfElement(element) {
  */
 
 function setFormEventListeners() {
-    setFormEventListener(firstName);
-    setFormEventListener(lastName);
-    setFormEventListener(address);
-    setFormEventListener(city);
+    const formInputs = ["firstName", "lastName", "address", "city", "email"];
+    for(input of formInputs) {
+        setFormEventListener(input);
+    }
+    setSubmitEventListener();
 }
 
 
@@ -328,15 +329,15 @@ function setFormEventListeners() {
  * 
  * Sets an event listener on a text input of the form
  * 
- * @param { String } input 
+ * @param { String } input
  */
 
 function setFormEventListener(input) {
-    const inputElement = document.querySelector(`#${input.name}`);
-    const inputErrorMsgElement = document.querySelector(`#${input.name}ErrorMsg`);
+    const inputElement = document.querySelector(`#${input}`);
+    const inputErrorMsgElement = document.querySelector(`#${input}ErrorMsg`);
     inputElement.addEventListener("change", (e) => {
-        if(!isValid(input.name, e.target.value)) {
-            displayInputErrorMsg(input.name, inputErrorMsgElement);
+        if(!isValid(input, e.target.value)) {
+            displayInputErrorMsg(input, inputErrorMsgElement);
         }
         else{
             inputErrorMsgElement.innerText = "";
@@ -356,19 +357,31 @@ function setFormEventListener(input) {
  * 
  * ================== REGEX rules  ===========================
  * 
- * First name, last name and city regex : 
+ * First name, last name and city regex :
+ * ------------------------------------ 
  *   - first group of characters : 
  *              starts with a letter
  *              then optional letters, apostrophes or dashes
  *   - then optional groups of letters, apostrophes, dashes or white spaces
  *   - ends with a letter or an apostrophe
  *   - case insensitive
- *                                      
+ *                         
+ *              
  * Address regex :
+ * -------------
  *   - starts with an optional group of digits including optional comma and ending with a white space
  *   - then at least 1 group of letters or dash or apostrophe ending with a white space
  *   - ends with 4 or 5 digits (= zip code)
  *   - case insensitive
+ * 
+ * 
+ * Email regex :
+ * ------------
+ *   - starts with at least 1 alphanumeric character, underscore, dash or dot 
+ *   - then @
+ *   - then at least 1 group of alphanumeric characters, underscores or dashes, ending with a dot
+ *   - ends with 2 to 4 alphanumeric characters
+ *   - no accents
  * 
  * ============================================================
  */
@@ -376,16 +389,21 @@ function setFormEventListener(input) {
 function isValid(inputName, stringToTest) {
     const firstNameRegex = new RegExp(
         "(^[a-zà-ÿ][a-zà-ÿ-']?)+([a-zà-ÿ-' ]+)?[a-zà-ÿ']$", "i"
-        );
+    );
     const addressRegex = new RegExp(
         "^([0-9]+[,]? )?([a-zà-ÿ-']+ )+[0-9]{4,5}$", "i"
-        );
+    );
+    const emailRegex = new RegExp(
+        "^[A-Za-z0-9-\._]+@([A-Za-z0-9_-]+\.)+[A-Za-z0-9]{2,4}$"
+    );
+    
     
     const regexs = {
         firstName: firstNameRegex,
         lastName: firstNameRegex,
         address: addressRegex,
-        city: firstNameRegex
+        city: firstNameRegex,
+        email: emailRegex
     }
     
     return regexs[inputName].test(stringToTest);
@@ -405,7 +423,71 @@ function displayInputErrorMsg(inputName, errorMsgElement) {
         firstName: "Prénom invalide. Le prénom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
         lastName: "Nom invalide. Le nom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
         address: "Adresse invalide. N'oubliez pas le code postal à la fin.",
-        city: "Format invalide. Le nom de la ville doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces."
+        city: "Format de ville invalide. Le nom de la ville doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
+        email: "Adresse email invalide."
     }
     errorMsgElement.innerText = textErrorMessages[inputName];
+}
+
+
+/**
+ * Sets a submit event listener on the form
+ * 
+ * @param { SubmitEvent } e
+ */
+
+function setSubmitEventListener() {
+    const form = document.querySelector(".cart__order__form");
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const contact = getFormInputs();
+        const products = getLocalStorageItems();
+        fetch("http://localhost:3000/api/products/order", {
+            method: "POST",
+            headers: {"Content-type": "application/json"},
+            body: JSON.stringify({contact, products})
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            window.location.href = `confirmation.html?orderId=${data.orderId}`;
+        })
+    })
+}
+
+
+/**
+ * Gets all the current values in the form's input fields
+ * 
+ * @returns { Object }
+ */
+
+function getFormInputs() {
+    const contact = {
+        firstName: document.querySelector("#firstName").value,
+        lastName: document.querySelector("#lastName").value,
+        address: document.querySelector("#address").value,
+        city: document.querySelector("#city").value,
+        email: document.querySelector("#email").value
+    }
+    return contact;
+}
+
+
+/**
+ * Gets all the items' ids in localStorage
+ * 
+ * @returns { Array }
+ */
+
+function getLocalStorageItems() {
+    const localStorageItemsIds = [];
+    for(key in localStorage) {
+        if(!localStorage.hasOwnProperty(key)) {
+            continue;
+        }
+        const product = JSON.parse(localStorage.getItem(key))
+        localStorageItemsIds.push(product.id);
+    }
+    console.log(localStorageItemsIds)
+    return localStorageItemsIds;
 }

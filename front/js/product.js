@@ -1,3 +1,4 @@
+
 /**
  * Displays the full product's page
  */
@@ -222,38 +223,57 @@ const productParamsAreSet = (productToAdd) => {
 
 
 /**
- * Stores the product (id, color, quantity) in localStorage
+ * Adds the product to the cart, or update quantity if product already exists
  * 
  * @param { Object } productToAdd 
  */
 
 const addToCart = (productToAdd) => {
-    if(localStorage.length != 0) {
-        updateProductToAddQuantity(productToAdd);
+    if(localStorage.length === 0) {
+        addToLocalStorage(productToAdd);
     }
-    addToLocalStorage(productToAdd);
+    else {
+        for(key in localStorage) {
+            if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
+                continue;
+            }
+
+            const storedProduct = JSON.parse(localStorage.getItem(key));
+            if(isSameProduct(productToAdd, storedProduct)) {
+                updateProductQuantity(productToAdd, storedProduct, key);
+                break;
+            }
+            if(isLastStorageKey(key) && !isSameProduct(productToAdd, storedProduct)) {
+                addToLocalStorage(productToAdd);
+            }
+        }
+    }
+}
+
+/**
+ * In localStorage iteration (for... in loop), checks if the current iteration is the last of the loop
+ * 
+ * @param { Integer } key 
+ * @returns { Boolean }
+ */
+
+const isLastStorageKey = (key) => {
+    return key === localStorage.key(localStorage.length - 1)
 }
 
 
 /**
  * Updates quantity of the product to add :
- * - if product already exists in storage, adds quantity input to quantity in storage
- * - else does nothing
  * 
- * @param { Object } productToAdd 
+ * @param { Object } productToAdd
+ * @param { Object } storedProduct
+ * @param { Integer } key
  */
 
-const updateProductToAddQuantity = (productToAdd) => {
-    for(key in localStorage) {
-        if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
-            continue;
-        }
-        const storedProduct = JSON.parse(localStorage.getItem(key));
-        if(isSameProduct(productToAdd, storedProduct)) {
-            productToAdd.quantity = parseInt(storedProduct.quantity) + parseInt(productToAdd.quantity);
-            break;
-        }
-    }
+const updateProductQuantity = (productToAdd, storedProduct, key) => {
+    storedProduct.quantity = parseInt(storedProduct.quantity) + parseInt(productToAdd.quantity);
+    const stringifiedProduct = JSON.stringify(storedProduct);
+    localStorage.setItem(key, stringifiedProduct);
 }
 
 
@@ -277,9 +297,9 @@ const isSameProduct = (productToAdd, storedProduct) => {
  */
 
 const addToLocalStorage = (productToAdd) => {
-    const productToAddStorageKey = getProductStorageKey(productToAdd);
+    const newKey = localStorage.length;
     const stringifiedItem = JSON.stringify(productToAdd);
-    localStorage.setItem(productToAddStorageKey, stringifiedItem);
+    localStorage.setItem(newKey, stringifiedItem);
 }
 
 
@@ -293,6 +313,7 @@ const addToLocalStorage = (productToAdd) => {
 const getProductStorageKey = (product) => {
     return `${product.id}-${product.color}`;
 }
+
 
 
 

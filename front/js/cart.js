@@ -1,12 +1,8 @@
-displayCart();
-setFormEventListeners();
-
-
 /**
  * Displays the cart
  */
 
-async function displayCart() {
+const displayCart = async () => {
     await displayAllCartItems();
     setQuantityEventListener();
     setDeleteItemEventListener();
@@ -19,7 +15,7 @@ async function displayCart() {
  * Displays all cart items
  */
 
-async function displayAllCartItems() {
+const displayAllCartItems = async () => {
     for(let key in localStorage) {
         if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
             continue;
@@ -36,7 +32,7 @@ async function displayAllCartItems() {
  * @param { Object } parsedItem
  */
 
-async function displayCartItem(parsedItem) {
+const displayCartItem = async (parsedItem) => {
     const localLanguage = document.querySelector("html").lang;
     const cart = document.querySelector("#cart__items");
     const product = await getProduct(parsedItem.id);
@@ -76,7 +72,7 @@ async function displayCartItem(parsedItem) {
  * @returns { Promise } 
  */
 
-async function getProduct(productId) {
+const getProduct = async (productId) => {
     try {
         const data = await fetch(`http://localhost:3000/api/products/${productId}`);
         const product = data.json();
@@ -96,7 +92,7 @@ async function getProduct(productId) {
  * @returns { String }
  */
 
-function translateColor(color, langInitial, langFinal) {
+const translateColor = (color, langInitial, langFinal) => {
     const localColors = {
         eng: {
             black: "Black",
@@ -146,7 +142,7 @@ function translateColor(color, langInitial, langFinal) {
  * Displays cart total quantity
  */
 
-function displayCartTotalQuantity() {
+const displayCartTotalQuantity = () => {
     const cartTotalQuantityElement = document.querySelector("#totalQuantity");
     const allQuantities = [];
     const allQuantityElements = document.querySelectorAll(".itemQuantity");
@@ -164,7 +160,7 @@ function displayCartTotalQuantity() {
  * Displays cart total price
  */
 
-function displayCartTotalPrice() {
+const displayCartTotalPrice = () => {
     const cartTotalPriceElement = document.querySelector("#totalPrice");
     const allPrices = [];
     const allPriceElements = document.querySelectorAll(".cart__item__content__description p:last-child");
@@ -187,7 +183,7 @@ function displayCartTotalPrice() {
  * @returns { Number }
  */
 
-function arraySum(array) {
+const arraySum = (array) => {
     const total = array.reduce(
         (accumulator, currentValue) => parseInt(accumulator) + parseInt(currentValue),
         0
@@ -204,7 +200,7 @@ function arraySum(array) {
  *   - updates the item's quantity in localStorage.
  */
 
-function setQuantityEventListener() {
+const setQuantityEventListener = () => {
     const itemQuantityElements = document.querySelectorAll(".itemQuantity");
     for(let itemQuantityElement of itemQuantityElements) {
         itemQuantityElement.addEventListener("change", (e) => {
@@ -225,24 +221,21 @@ function setQuantityEventListener() {
  * @param { Integer } newQuantity 
  */
 
-function updateItemQuantityInLocalStorage(element, newQuantity) {
+const updateItemQuantityInLocalStorage = (element, newQuantity) => {
     const item = getIdAndColorOfElement(element);
     const updatedProduct = {
-        id: item.itemId,
-        color: item.itemColor,
+        id: item.id,
+        color: item.color,
         quantity: newQuantity
     }
-    const updatedProductStorageKey = `${updatedProduct.id}-${updatedProduct.color}`;
     for(key in localStorage) {
         if(!localStorage.hasOwnProperty(key)) {
             continue;
         }
-        const parsedItem = JSON.parse(localStorage.getItem(key));
-        const storedItemStorageKey = `${parsedItem.id}-${parsedItem.color}`;
-        if(updatedProductStorageKey === storedItemStorageKey) {
-            parsedItem.quantity = parseInt(updatedProduct.quantity);
-            const stringifiedItem = JSON.stringify(parsedItem);
-            localStorage.setItem(updatedProductStorageKey, stringifiedItem);
+        const storedProduct = JSON.parse(localStorage.getItem(key));
+        if(updatedProduct.id === storedProduct.id && updatedProduct.color === storedProduct.color) {
+            const stringifiedProduct = JSON.stringify(updatedProduct);
+            localStorage.setItem(key, stringifiedProduct);
         }    
     }
 }
@@ -256,14 +249,14 @@ function updateItemQuantityInLocalStorage(element, newQuantity) {
  *   - updates total quantity and total price
  */
 
-function setDeleteItemEventListener() {
-    const deleteItems = document.querySelectorAll(".deleteItem");
-    for(let deleteItem of deleteItems) {
-        deleteItem.addEventListener("click", () => {
+const setDeleteItemEventListener = () => {
+    const deleteButtons = document.querySelectorAll(".deleteItem");
+    for(let deleteButton of deleteButtons) {
+        deleteButton.addEventListener("click", () => {
             
-            deleteItemInLocalStorage(deleteItem);
+            deleteItemInLocalStorage(deleteButton);
 
-            const parentArticle = deleteItem.closest("article");
+            const parentArticle = deleteButton.closest("article");
             parentArticle.remove();
             
             displayCartTotalQuantity();
@@ -278,10 +271,17 @@ function setDeleteItemEventListener() {
  * @param { HTMLElement } item 
  */
 
-function deleteItemInLocalStorage(item) {
-    const itemToDelete = getIdAndColorOfElement(item);
-    const itemToDeleteStorageKey = `${itemToDelete.itemId}-${itemToDelete.itemColor}`;
-    localStorage.removeItem(itemToDeleteStorageKey);
+const deleteItemInLocalStorage = (item) => {
+    const productToDelete = getIdAndColorOfElement(item);
+    for(key in localStorage) {
+        if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
+            continue;
+        }
+        const storedItem = JSON.parse(localStorage.getItem(key));
+        if(storedItem.id === productToDelete.id && storedItem.color === productToDelete.color) {
+            localStorage.removeItem(key);
+        }
+    }
 }
 
 
@@ -293,11 +293,11 @@ function deleteItemInLocalStorage(item) {
  * @returns { Object }
  */
 
-function getIdAndColorOfElement(element) {
+const getIdAndColorOfElement = (element) => {
     const parentElement = element.closest("article");
-    const itemId = parentElement.dataset.id;
-    const itemColor = parentElement.dataset.color;
-    return {itemId, itemColor}
+    const id = parentElement.dataset.id;
+    const color = parentElement.dataset.color;
+    return {id, color}
 }
 
 
@@ -305,7 +305,7 @@ function getIdAndColorOfElement(element) {
  * Sets event listeners on inputs in the form
  */
 
-function setFormEventListeners() {
+const setFormEventListeners = () => {
     const formInputs = ["firstName", "lastName", "address", "city", "email"];
     for(input of formInputs) {
         setFormEventListener(input);
@@ -322,7 +322,7 @@ function setFormEventListeners() {
  * @param { String } input
  */
 
-function setFormEventListener(input) {
+const setFormEventListener = (input) => {
     const inputElement = document.querySelector(`#${input}`);
     const inputErrorMsgElement = document.querySelector(`#${input}ErrorMsg`);
     inputElement.addEventListener("change", (e) => {
@@ -376,7 +376,7 @@ function setFormEventListener(input) {
  * ============================================================
  */
 
-function isValid(inputName, stringToTest) {
+const isValid = (inputName, stringToTest) => {
     const firstNameRegex = new RegExp(
         "(^[a-zà-ÿ][a-zà-ÿ-']?)+([a-zà-ÿ-' ]+)?[a-zà-ÿ']$", "i"
     );
@@ -404,7 +404,7 @@ function isValid(inputName, stringToTest) {
  * @param { String } inputName 
  */
 
-function displayInputErrorMsg(inputName, errorMsgElement) {
+const displayInputErrorMsg = (inputName, errorMsgElement) => {
     
     const textErrorMessages = {
         firstName: "Prénom invalide. Le prénom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
@@ -423,7 +423,7 @@ function displayInputErrorMsg(inputName, errorMsgElement) {
  * @param { SubmitEvent } e
  */
 
-function setSubmitEventListener() {
+const setSubmitEventListener = () => {
     const form = document.querySelector(".cart__order__form");
     form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -437,7 +437,7 @@ function setSubmitEventListener() {
  */
 
 
-function sendOrderRequest(){
+const sendOrderRequest = () => {
     const contact = getFormInputs();
     const products = getLocalStorageItems();
     fetch("http://localhost:3000/api/products/order", {
@@ -459,7 +459,7 @@ function sendOrderRequest(){
  * @returns { Object }
  */
 
-function getFormInputs() {
+const getFormInputs = () => {
     const contact = {
         firstName: document.querySelector("#firstName").value,
         lastName: document.querySelector("#lastName").value,
@@ -477,7 +477,7 @@ function getFormInputs() {
  * @returns { Array }
  */
 
-function getLocalStorageItems() {
+const getLocalStorageItems = () => {
     const localStorageItemsIds = [];
     for(key in localStorage) {
         if(!localStorage.hasOwnProperty(key)) {
@@ -488,3 +488,8 @@ function getLocalStorageItems() {
     }
     return localStorageItemsIds;
 }
+
+
+
+displayCart();
+setFormEventListeners();

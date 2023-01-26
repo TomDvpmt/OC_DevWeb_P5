@@ -12,7 +12,7 @@ if(searchParams.has("orderId")) {
  * @returns { URLSearchParams }
  */
 
-function getSearchParams() {
+const getSearchParams = () => {
     const currentUrl = new URL(window.location.href);
     const searchParams = new URLSearchParams(currentUrl.search);
     return searchParams;

@@ -1,6 +1,15 @@
-const productId = getProductId();
+/**
+ * Displays the full product's page
+ */
 
-displayProductPage();
+const displayProductPage = async () => {
+    const productId = getProductId();
+    const product = await getProductFromAPI(productId);
+    setProductPageImg(product);
+    setProductPageInfos(product);
+    setProductPageColorOptions(product);
+    setAddToCartListener();
+}
 
 
 /**
@@ -9,7 +18,7 @@ displayProductPage();
  * @returns { Number }
  */
 
-function getProductId() {
+const getProductId = () => {
     const searchParams = getSearchParams();
     if(searchParams.has("id")) {
         const productId = searchParams.get("id");
@@ -24,24 +33,12 @@ function getProductId() {
  * @returns { URLSearchParams }
  */
 
-function getSearchParams() {
+const getSearchParams = () => {
     const currentUrl = new URL(window.location.href);
     const searchParams = new URLSearchParams(currentUrl.search);
     return searchParams;
 }
 
-
-/**
- * Displays the full product's page
- */
-
-async function displayProductPage() {
-    const product = await getProduct(productId);
-    setProductPageImg(product);
-    setProductPageInfos(product);
-    setProductPageColorOptions(product);
-    setAddToCartListener();
-}
 
 
 /**
@@ -51,7 +48,7 @@ async function displayProductPage() {
  * @returns { Promise } 
  */
 
-async function getProduct(productId) {
+const getProductFromAPI = async (productId) => {
     try {
         const data = await fetch(`http://localhost:3000/api/products/${productId}`);
         const product = data.json();
@@ -69,13 +66,14 @@ async function getProduct(productId) {
  * @param { Object } product
  */
 
-function setProductPageImg(product) {
+const setProductPageImg = (product) => {
     const imgParent = document.querySelector(".item__img");
     const imgElement = document.createElement("img");
     imgElement.src = product.imageUrl;
     imgElement.setAttribute("alt", product.altTxt);
     imgParent.append(imgElement);
 }
+
 
  /**
   * Sets the product's infos on the product's page
@@ -85,7 +83,7 @@ function setProductPageImg(product) {
   * @const { Array } couples - array of arrays : [<DOM selector>, <innerText>]
   */
 
-function setProductPageInfos(product) {
+const setProductPageInfos = (product) => {
     const infoCouples = [
         ["head > title", product.name],
         ["#title", product.name], 
@@ -104,7 +102,7 @@ function setProductPageInfos(product) {
  * @param { Object } product 
  */
 
-function setProductPageColorOptions(product) {
+const setProductPageColorOptions = (product) => {
     const localLanguage = document.querySelector("html").lang;
     const colors = product.colors;
     const colorsElement = document.querySelector("#colors");
@@ -127,7 +125,7 @@ function setProductPageColorOptions(product) {
  * @returns { String }
  */
 
-function translateColor(color, langInitial, langFinal) {
+const translateColor = (color, langInitial, langFinal) => {
     const localColors = {
         eng: {
             black: "Black",
@@ -180,23 +178,46 @@ function translateColor(color, langInitial, langFinal) {
  *   - else does nothing
  */
 
-function setAddToCartListener() {
+const setAddToCartListener = () => {
     const addToCartButton = document.querySelector("#addToCart");
 
     addToCartButton.addEventListener("click", () => {
-        const productColor = document.querySelector("#colors").value;
-        const productQuantity = document.querySelector("#quantity").value;
-        const productToAdd = {
-            id: productId, 
-            color: productColor, 
-            quantity: productQuantity
-        };
-
-        if(productColor !== "" && productQuantity !== "0") {
+        const productToAdd = getProductToAdd();
+        if(productParamsAreSet(productToAdd)) {
             addToCart(productToAdd);
             window.location.href = "cart.html";
         }
     });
+}
+
+/**
+ * Gets the product's id, color and quantity from the DOM
+ * 
+ * @returns { Object }
+ */
+
+const getProductToAdd = () => {
+    const productId = getProductId();
+    const productColor = document.querySelector("#colors").value;
+    const productQuantity = document.querySelector("#quantity").value;
+    const productToAdd = {
+        id: productId, 
+        color: productColor, 
+        quantity: productQuantity
+    };
+    return productToAdd;
+}
+
+
+/**
+ * Checks if product's color and quantity are set
+ * 
+ * @param {*} productToAdd 
+ * @returns { Boolean } 
+ */
+
+const productParamsAreSet = (productToAdd) => {
+    return productToAdd.color !== "" && productToAdd.quantity !== "0";
 }
 
 
@@ -206,21 +227,73 @@ function setAddToCartListener() {
  * @param { Object } productToAdd 
  */
 
-function addToCart(productToAdd) {
-    const productToAddStorageKey = `${productToAdd.id}-${productToAdd.color}`;
+const addToCart = (productToAdd) => {
     if(localStorage.length != 0) {
-        for(key in localStorage) {
-            if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
-                continue;
-            }
-            const parsedItem = JSON.parse(localStorage.getItem(key));
-            const storedItemStorageKey = `${parsedItem.id}-${parsedItem.color}`
-            if(productToAddStorageKey === storedItemStorageKey) {
-                productToAdd.quantity = parseInt(parsedItem.quantity) + parseInt(productToAdd.quantity);
-                break;
-            }
+        updateProductToAddQuantity(productToAdd);
+    }
+    addToLocalStorage(productToAdd);
+}
+
+
+/**
+ * Updates quantity of the product to add :
+ * - if product already exists in storage, adds quantity input to quantity in storage
+ * - else does nothing
+ * 
+ * @param { Object } productToAdd 
+ */
+
+const updateProductToAddQuantity = (productToAdd) => {
+    for(key in localStorage) {
+        if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
+            continue;
+        }
+        const storedProduct = JSON.parse(localStorage.getItem(key));
+        if(isSameProduct(productToAdd, storedProduct)) {
+            productToAdd.quantity = parseInt(storedProduct.quantity) + parseInt(productToAdd.quantity);
+            break;
         }
     }
+}
+
+
+/**
+ * Checks if the product to add already exists in localStorage (has same id and same color)
+ * 
+ * @param { Object } productToAdd 
+ * @param { Object } storedProduct 
+ * @returns { Boolean }
+ */
+
+const isSameProduct = (productToAdd, storedProduct) => {
+    return productToAdd.id === storedProduct.id && productToAdd.color === storedProduct.color;
+}
+
+
+/**
+ * Adds a product to localStorage
+ * 
+ * @param { Object } productToAdd 
+ */
+
+const addToLocalStorage = (productToAdd) => {
+    const productToAddStorageKey = getProductStorageKey(productToAdd);
     const stringifiedItem = JSON.stringify(productToAdd);
     localStorage.setItem(productToAddStorageKey, stringifiedItem);
 }
+
+
+/**
+ * Gets the product's key in localStorage
+ * 
+ * @param { Object } product 
+ * @returns { String }
+ */
+
+const getProductStorageKey = (product) => {
+    return `${product.id}-${product.color}`;
+}
+
+
+
+displayProductPage();

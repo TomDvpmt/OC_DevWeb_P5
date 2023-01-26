@@ -386,8 +386,6 @@ function isValid(inputName, stringToTest) {
     const emailRegex = new RegExp(
         "^[A-Za-z0-9-\._]+@([A-Za-z0-9_-]+\.)+[A-Za-z0-9]{2,4}$"
     );
-    
-    
     const regexs = {
         firstName: firstNameRegex,
         lastName: firstNameRegex,
@@ -395,7 +393,6 @@ function isValid(inputName, stringToTest) {
         city: firstNameRegex,
         email: emailRegex
     }
-    
     return regexs[inputName].test(stringToTest);
 }
 
@@ -430,19 +427,29 @@ function setSubmitEventListener() {
     const form = document.querySelector(".cart__order__form");
     form.addEventListener("submit", (e) => {
         e.preventDefault();
-        const contact = getFormInputs();
-        const products = getLocalStorageItems();
-        fetch("http://localhost:3000/api/products/order", {
-            method: "POST",
-            headers: {"Content-type": "application/json"},
-            body: JSON.stringify({contact, products})
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            window.location.href = `confirmation.html?orderId=${data.orderId}`;
-        })
-        .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))
+        sendOrderRequest();
     })
+}
+
+
+/**
+ * Sends a contact object and an array of products' ids to the API in a POST request, then if the promise is resolved, gets the orderId and sends it (and the user) to confirmation.html
+ */
+
+
+function sendOrderRequest(){
+    const contact = getFormInputs();
+    const products = getLocalStorageItems();
+    fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        headers: {"Content-type": "application/json"},
+        body: JSON.stringify({contact, products})
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        window.location.href = `confirmation.html?orderId=${data.orderId}`;
+    })
+    .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))
 }
 
 

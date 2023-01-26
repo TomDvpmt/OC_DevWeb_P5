@@ -1,16 +1,16 @@
-createAllProductsElements();
+displayAllProducts();
 
 
 /**
- * Get all products from the API
+ * Displays all products on the page
  */
 
-function createAllProductsElements() {
-    fetch("http://localhost:3000/api/products")
+function displayAllProducts() {
+    fetchProducts()
     .then(response => response.json())
     .then(allProducts => {
         for(product of allProducts) {
-            createProductElement(product);
+            displayProduct(product);
         }
     })
     .catch(() => {
@@ -20,12 +20,23 @@ function createAllProductsElements() {
 
 
 /**
- * Creates the product's DOM element
+ * Gets all products from the API
+ * @returns { Promise }
+ */
+
+function fetchProducts() {
+    return fetch("http://localhost:3000/api/products")
+}
+
+
+
+/**
+ * Displays 1 product on the page
  * 
  * @param { Object } product
  */
 
-function createProductElement(product) {
+function displayProduct(product) {
     const productsList = document.querySelector(".items");
     const productLink = document.createElement("a");
     productLink.setAttribute("href", `./product.html?id=${product._id}&name=${product.name}`);

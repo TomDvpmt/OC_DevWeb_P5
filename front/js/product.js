@@ -47,7 +47,7 @@ async function displayProductPage() {
 /**
  * Gets a single product from the API
  * 
- * @param { Integer } productId
+ * @param { String } productId
  * @returns { Promise } 
  */
 

@@ -1,3 +1,6 @@
+createAllProductsElements();
+
+
 /**
  * Get all products from the API
  */
@@ -15,8 +18,6 @@ function createAllProductsElements() {
     });
 }
 
-createAllProductsElements();
-
 
 /**
  * Creates the product's DOM element
@@ -26,27 +27,18 @@ createAllProductsElements();
 
 function createProductElement(product) {
     const productsList = document.querySelector(".items");
-    
     const productLink = document.createElement("a");
     productLink.setAttribute("href", `./product.html?id=${product._id}&name=${product.name}`);
-
-    const productArticle = document.createElement("article");
-    
-    const productImg = document.createElement("img");
-    productImg.src = product.imageUrl;
-    productImg.alt = product.altTxt;
-
-    const productName = document.createElement("h3");
-    productName.classList.add("productName");
-    productName.textContent = product.name;
-
-    const productDescription = document.createElement("p");
-    productDescription.classList.add("productDescription");
-    productDescription.textContent = product.description;
-
-    productArticle.append(productImg);
-    productArticle.append(productName);
-    productArticle.append(productDescription);
-    productLink.append(productArticle);
+    productLink.innerHTML = `
+        <article>
+            <img src="${product.imageUrl}" alt="${product.altTxt}">
+            <h3 class="productName">${product.name}</h3>
+            <p class="productDescription">${product.description}</p>
+        </article>
+    `;
     productsList.append(productLink);
+
+    
+
+    
 }

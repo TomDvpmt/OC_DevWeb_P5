@@ -1,5 +1,3 @@
-const localLanguage = document.querySelector("html").lang;
-
 displayCart();
 setFormEventListeners();
 
@@ -39,6 +37,7 @@ async function displayAllCartItems() {
  */
 
 async function displayCartItem(parsedItem) {
+    const localLanguage = document.querySelector("html").lang;
     const cart = document.querySelector("#cart__items");
     const product = await getProduct(parsedItem.id);
     
@@ -86,7 +85,6 @@ async function getProduct(productId) {
     catch (error) {
         alert("Impossible de contacter le serveur, les produits du panier ne pourront pas être affichés.");
     }
-    
 }
 
 /**
@@ -135,7 +133,6 @@ function translateColor(color, langInitial, langFinal) {
             yellow: "Jaune"
         }
     }
-
     for(colorProperty in localColors[langInitial]) {
         if(localColors[langInitial][colorProperty] === color) {
             const translatedColor = localColors[langFinal][colorProperty];
@@ -153,7 +150,7 @@ function displayCartTotalQuantity() {
     const cartTotalQuantityElement = document.querySelector("#totalQuantity");
     const allQuantities = [];
     const allQuantityElements = document.querySelectorAll(".itemQuantity");
-    
+
     for(let quantityElement of allQuantityElements) {
         allQuantities.push(quantityElement.value);
     }
@@ -215,9 +212,7 @@ function setQuantityEventListener() {
             displayCartTotalPrice();
             
             const itemNewQuantity = parseInt(e.target.value);
-
             updateItemQuantityInLocalStorage(itemQuantityElement, itemNewQuantity);
-            console.log(localStorage)
         })
     }
 };
@@ -237,17 +232,17 @@ function updateItemQuantityInLocalStorage(element, newQuantity) {
         color: item.itemColor,
         quantity: newQuantity
     }
-    const updatedProductStorageId = `${updatedProduct.id}-${updatedProduct.color}`;
+    const updatedProductStorageKey = `${updatedProduct.id}-${updatedProduct.color}`;
     for(key in localStorage) {
         if(!localStorage.hasOwnProperty(key)) {
             continue;
         }
         const parsedItem = JSON.parse(localStorage.getItem(key));
-        const storedItemStorageId = `${parsedItem.id}-${parsedItem.color}`;
-        if(updatedProductStorageId === storedItemStorageId) {
+        const storedItemStorageKey = `${parsedItem.id}-${parsedItem.color}`;
+        if(updatedProductStorageKey === storedItemStorageKey) {
             parsedItem.quantity = parseInt(updatedProduct.quantity);
             const stringifiedItem = JSON.stringify(parsedItem);
-            localStorage.setItem(updatedProductStorageId, stringifiedItem);
+            localStorage.setItem(updatedProductStorageKey, stringifiedItem);
         }    
     }
 }
@@ -273,8 +268,6 @@ function setDeleteItemEventListener() {
             
             displayCartTotalQuantity();
             displayCartTotalPrice();
-            
-            console.log(localStorage)
         })
     }
 }
@@ -287,10 +280,8 @@ function setDeleteItemEventListener() {
 
 function deleteItemInLocalStorage(item) {
     const itemToDelete = getIdAndColorOfElement(item);
-    console.log(itemToDelete)
-    const itemToDeleteStorageId = `${itemToDelete.itemId}-${itemToDelete.itemColor}`
-
-    localStorage.removeItem(itemToDeleteStorageId);
+    const itemToDeleteStorageKey = `${itemToDelete.itemId}-${itemToDelete.itemColor}`;
+    localStorage.removeItem(itemToDeleteStorageKey);
 }
 
 
@@ -301,7 +292,6 @@ function deleteItemInLocalStorage(item) {
  * @param { HTMLElement } element 
  * @returns { Object }
  */
-
 
 function getIdAndColorOfElement(element) {
     const parentElement = element.closest("article");
@@ -451,6 +441,7 @@ function setSubmitEventListener() {
         .then((data) => {
             window.location.href = `confirmation.html?orderId=${data.orderId}`;
         })
+        .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))
     })
 }
 
@@ -488,6 +479,5 @@ function getLocalStorageItems() {
         const product = JSON.parse(localStorage.getItem(key))
         localStorageItemsIds.push(product.id);
     }
-    console.log(localStorageItemsIds)
     return localStorageItemsIds;
 }

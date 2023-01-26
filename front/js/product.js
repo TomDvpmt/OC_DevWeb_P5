@@ -1,9 +1,6 @@
-const localLanguage = document.querySelector("html").lang;
 const productId = getProductId();
 
 displayProductPage();
-
-
 
 
 /**
@@ -63,7 +60,6 @@ async function getProduct(productId) {
     catch(e) {
         alert("Impossible de contacter le serveur, le produit ne pourra pas être affiché.");
     }
-    
 }
 
 
@@ -83,7 +79,7 @@ function setProductPageImg(product) {
 
  /**
   * Sets the product's infos on the product's page
-  * NB : the image of the product is set with the setproductPageImg function
+  * NB : the image of the product is set with the setProductPageImg function
   * 
   * @param { Object } product 
   * @const { Array } couples - array of arrays : [<DOM selector>, <innerText>]
@@ -109,6 +105,7 @@ function setProductPageInfos(product) {
  */
 
 function setProductPageColorOptions(product) {
+    const localLanguage = document.querySelector("html").lang;
     const colors = product.colors;
     const colorsElement = document.querySelector("#colors");
     
@@ -167,7 +164,6 @@ function translateColor(color, langInitial, langFinal) {
             yellow: "Jaune"
         }
     }
-
     for(colorProperty in localColors[langInitial]) {
         if(localColors[langInitial][colorProperty] === color) {
             const translatedColor = localColors[langFinal][colorProperty];
@@ -211,20 +207,20 @@ function setAddToCartListener() {
  */
 
 function addToCart(productToAdd) {
-    const productToAddStorageId = `${productToAdd.id}-${productToAdd.color}`;
+    const productToAddStorageKey = `${productToAdd.id}-${productToAdd.color}`;
     if(localStorage.length != 0) {
         for(key in localStorage) {
             if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
                 continue;
             }
             const parsedItem = JSON.parse(localStorage.getItem(key));
-            const storedItemStorageId = `${parsedItem.id}-${parsedItem.color}`
-            if(productToAddStorageId === storedItemStorageId) {
+            const storedItemStorageKey = `${parsedItem.id}-${parsedItem.color}`
+            if(productToAddStorageKey === storedItemStorageKey) {
                 productToAdd.quantity = parseInt(parsedItem.quantity) + parseInt(productToAdd.quantity);
                 break;
             }
         }
     }
     const stringifiedItem = JSON.stringify(productToAdd);
-    localStorage.setItem(productToAddStorageId, stringifiedItem);
+    localStorage.setItem(productToAddStorageKey, stringifiedItem);
 }

@@ -232,12 +232,23 @@ const updateItemQuantityInLocalStorage = (element, newQuantity) => {
         if(!localStorage.hasOwnProperty(key)) {
             continue;
         }
-        const storedProduct = JSON.parse(localStorage.getItem(key));
-        if(updatedProduct.id === storedProduct.id && updatedProduct.color === storedProduct.color) {
+        const updatedProductStorageKey = getProductStorageKey(updatedProduct);
+        if(key === updatedProductStorageKey) {
             const stringifiedUpdatedProduct = JSON.stringify(updatedProduct);
             localStorage.setItem(key, stringifiedUpdatedProduct);
         }
     }
+}
+
+/**
+ * Gets the product's key in localStorage
+ * 
+ * @param { Object } product 
+ * @returns { String }
+ */
+
+const getProductStorageKey = (product) => {
+    return `${product.id}-${product.color}`;
 }
 
 
@@ -277,8 +288,8 @@ const deleteItemInLocalStorage = (item) => {
         if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
             continue;
         }
-        const storedItem = JSON.parse(localStorage.getItem(key));
-        if(storedItem.id === productToDelete.id && storedItem.color === productToDelete.color) {
+        const productToDeleteStorageKey = getProductStorageKey(productToDelete);
+        if(key === productToDeleteStorageKey) {
             localStorage.removeItem(key);
         }
     }
@@ -437,7 +448,7 @@ const setSubmitEventListener = () => {
 const sendOrderRequest = () => {
     const contact = getFormInputs();
     if(localStorage.length !== 0 && typeof contact !== "undefined") {
-        const products = getLocalStorageItems();
+        const products = getStoredProducts();
         fetch("http://localhost:3000/api/products/order", {
             method: "POST",
             headers: {"Content-type": "application/json"},
@@ -480,16 +491,16 @@ const getFormInputs = () => {
  * @returns { Array }
  */
 
-const getLocalStorageItems = () => {
-    const localStorageItemsIds = [];
+const getStoredProducts = () => {
+    const storedProductsIds = [];
     for(key in localStorage) {
         if(!localStorage.hasOwnProperty(key)) {
             continue;
         }
         const product = JSON.parse(localStorage.getItem(key))
-        localStorageItemsIds.push(product.id);
+        storedProductsIds.push(product.id);
     }
-    return localStorageItemsIds;
+    return storedProductsIds;
 }
 
 

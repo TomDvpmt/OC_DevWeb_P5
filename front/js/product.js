@@ -296,7 +296,7 @@ const isSameProduct = (productToAdd, storedProduct) => {
  */
 
 const addToLocalStorage = (productToAdd) => {
-    const newKey = localStorage.length;
+    const newKey = getProductStorageKey(productToAdd);
     const stringifiedItem = JSON.stringify(productToAdd);
     localStorage.setItem(newKey, stringifiedItem);
 }

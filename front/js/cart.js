@@ -1,5 +1,5 @@
 /**
- * Displays the cart
+ * Displays all the products in cart
  */
 
 const displayCart = async () => {
@@ -20,8 +20,8 @@ const displayAllCartItems = async () => {
         if(!localStorage.hasOwnProperty(key)) { // skips methods (getItem(), setItem(), clear()...)
             continue;
         }
-        const parsedItem = JSON.parse(localStorage.getItem(key));
-        await displayCartItem(parsedItem);
+        const storedProduct = JSON.parse(localStorage.getItem(key));
+        await displayCartItem(storedProduct);
     }
 }
 
@@ -29,18 +29,18 @@ const displayAllCartItems = async () => {
 /**
  * Displays an item in the cart from an item in localStorage
  * 
- * @param { Object } parsedItem
+ * @param { Object } storedProduct
  */
 
-const displayCartItem = async (parsedItem) => {
+const displayCartItem = async (storedProduct) => {
     const localLanguage = document.querySelector("html").lang;
     const cart = document.querySelector("#cart__items");
-    const product = await getProduct(parsedItem.id);
+    const product = await getProduct(storedProduct.id);
     
     const cartItem = document.createElement("article");
     cartItem.classList.add("cart__item");
-    cartItem.setAttribute("data-id", parsedItem.id);
-    cartItem.setAttribute("data-color", parsedItem.color);
+    cartItem.setAttribute("data-id", storedProduct.id);
+    cartItem.setAttribute("data-color", storedProduct.color);
     cartItem.innerHTML = `
         <div class="cart__item__img">
         <img src="${product.imageUrl}" alt="${product.altTxt}">
@@ -48,13 +48,13 @@ const displayCartItem = async (parsedItem) => {
         <div class="cart__item__content">
         <div class="cart__item__content__description">
             <h2>${product.name}</h2>
-            <p>${translateColor(parsedItem.color, "eng", localLanguage)}</p>
+            <p>${translateColor(storedProduct.color, "eng", localLanguage)}</p>
             <p>${product.price} €</p>
         </div>
         <div class="cart__item__content__settings">
             <div class="cart__item__content__settings__quantity">
             <p>Qté : </p>
-            <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${parsedItem.quantity}">
+            <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${storedProduct.quantity}">
             </div>
             <div class="cart__item__content__settings__delete">
             <p class="deleteItem">Supprimer</p>
@@ -180,7 +180,7 @@ const displayCartTotalPrice = () => {
  * Gets the sum of an array's values
  * 
  * @param { Array } array
- * @returns { Number }
+ * @returns { Integer }
  */
 
 const arraySum = (array) => {
@@ -234,9 +234,9 @@ const updateItemQuantityInLocalStorage = (element, newQuantity) => {
         }
         const storedProduct = JSON.parse(localStorage.getItem(key));
         if(updatedProduct.id === storedProduct.id && updatedProduct.color === storedProduct.color) {
-            const stringifiedProduct = JSON.stringify(updatedProduct);
-            localStorage.setItem(key, stringifiedProduct);
-        }    
+            const stringifiedUpdatedProduct = JSON.stringify(updatedProduct);
+            localStorage.setItem(key, stringifiedUpdatedProduct);
+        }
     }
 }
 
@@ -287,7 +287,7 @@ const deleteItemInLocalStorage = (item) => {
 
 
 /**
- * Gets the ID and color of an element's article parent
+ * Gets the id and color of an element's <article> parent
  * 
  * @param { HTMLElement } element 
  * @returns { Object }
@@ -305,10 +305,10 @@ const getIdAndColorOfElement = (element) => {
  * Sets event listeners on inputs in the form
  */
 
-const setFormEventListeners = () => {
+const setAllFormEventListeners = () => {
     const formInputs = ["firstName", "lastName", "address", "city", "email"];
-    for(input of formInputs) {
-        setFormEventListener(input);
+    for(inputName of formInputs) {
+        setFormEventListener(inputName);
     }
     setSubmitEventListener();
 }
@@ -319,15 +319,15 @@ const setFormEventListeners = () => {
  * 
  * Sets an event listener on a text input of the form
  * 
- * @param { String } input
+ * @param { String } inputName
  */
 
-const setFormEventListener = (input) => {
-    const inputElement = document.querySelector(`#${input}`);
-    const inputErrorMsgElement = document.querySelector(`#${input}ErrorMsg`);
+const setFormEventListener = (inputName) => {
+    const inputElement = document.querySelector(`#${inputName}`);
+    const inputErrorMsgElement = document.querySelector(`#${inputName}ErrorMsg`);
     inputElement.addEventListener("change", (e) => {
-        if(!isValid(input, e.target.value)) {
-            displayInputErrorMsg(input, inputErrorMsgElement);
+        if(!isValid(inputName, e.target.value)) {
+            displayInputErrorMsg(inputName, inputErrorMsgElement);
         }
         else{
             inputErrorMsgElement.innerText = "";
@@ -339,10 +339,6 @@ const setFormEventListener = (input) => {
 
 /**
  * Tests if string given by user matches a regex
- * 
- * @param { String } inputName
- * @param { String } stringToTest
- * @returns { Boolean }
  * 
  * 
  * ================== REGEX rules  ===========================
@@ -374,6 +370,10 @@ const setFormEventListener = (input) => {
  *   - no accents
  * 
  * ============================================================
+ * 
+ * @param { String } inputName
+ * @param { String } stringToTest
+ * @returns { Boolean }
  */
 
 const isValid = (inputName, stringToTest) => {
@@ -405,7 +405,6 @@ const isValid = (inputName, stringToTest) => {
  */
 
 const displayInputErrorMsg = (inputName, errorMsgElement) => {
-    
     const textErrorMessages = {
         firstName: "Prénom invalide. Le prénom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
         lastName: "Nom invalide. Le nom doit commencer par une lettre, et ne peut comporter ensuite que des lettres, tirets, apostrophes ou espaces.",
@@ -419,8 +418,6 @@ const displayInputErrorMsg = (inputName, errorMsgElement) => {
 
 /**
  * Sets a submit event listener on the form
- * 
- * @param { SubmitEvent } e
  */
 
 const setSubmitEventListener = () => {
@@ -439,35 +436,41 @@ const setSubmitEventListener = () => {
 
 const sendOrderRequest = () => {
     const contact = getFormInputs();
-    const products = getLocalStorageItems();
-    fetch("http://localhost:3000/api/products/order", {
-        method: "POST",
-        headers: {"Content-type": "application/json"},
-        body: JSON.stringify({contact, products})
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        window.location.href = `confirmation.html?orderId=${data.orderId}`;
-    })
-    .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))
+    if(localStorage.length !== 0 && typeof contact !== "undefined") {
+        const products = getLocalStorageItems();
+        fetch("http://localhost:3000/api/products/order", {
+            method: "POST",
+            headers: {"Content-type": "application/json"},
+            body: JSON.stringify({contact, products})
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            window.location.href = `confirmation.html?orderId=${data.orderId}`;
+        })
+        .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))
+    }
 }
 
 
 /**
  * Gets all the current values in the form's input fields
+ * Returns a contact object only if all the form's field are filled and validated
  * 
  * @returns { Object }
  */
 
 const getFormInputs = () => {
-    const contact = {
-        firstName: document.querySelector("#firstName").value,
-        lastName: document.querySelector("#lastName").value,
-        address: document.querySelector("#address").value,
-        city: document.querySelector("#city").value,
-        email: document.querySelector("#email").value
+    const inputNames = ["firstName", "lastName", "address", "city", "email"];
+    const contact = {};
+    inputNames.forEach((inputName) => {
+        const inputValue = document.querySelector(`#${inputName}`).value;
+        if(isValid(inputName, inputValue)) {
+            contact[inputName] = inputValue;
+        }
+    })
+    if(Object.keys(contact).length === inputNames.length) {
+        return contact;
     }
-    return contact;
 }
 
 
@@ -492,4 +495,4 @@ const getLocalStorageItems = () => {
 
 
 displayCart();
-setFormEventListeners();
+setAllFormEventListeners();

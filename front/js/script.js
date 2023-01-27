@@ -10,7 +10,7 @@ const fetchProducts = () => {
 
 
 /**
- * Displays 1 product on the page
+ * Displays 1 product
  * 
  * @param { Object } product
  */
@@ -31,7 +31,7 @@ const displayProduct = (product) => {
 
 
 /**
- * Displays all products on the page
+ * Displays all products on home page
  */
 
 const displayAllProducts = () => {

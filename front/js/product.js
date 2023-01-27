@@ -16,7 +16,7 @@ const displayProductPage = async () => {
 /**
  * Gets the product's id from URL's search parameters
  * 
- * @returns { Number }
+ * @returns { String }
  */
 
 const getProductId = () => {
@@ -77,11 +77,10 @@ const setProductPageImg = (product) => {
 
 
  /**
-  * Sets the product's infos on the product's page
-  * NB : the image of the product is set with the setProductPageImg function
+  * Sets the product's infos (name, price, description) on the product's page
   * 
   * @param { Object } product 
-  * @const { Array } couples - array of arrays : [<DOM selector>, <innerText>]
+  * @const { Array } infoCouples
   */
 
 const setProductPageInfos = (product) => {
@@ -192,7 +191,7 @@ const setAddToCartListener = () => {
 }
 
 /**
- * Gets the product's id, color and quantity from the DOM
+ * Gets the product's id, color and quantity
  * 
  * @returns { Object }
  */
@@ -213,7 +212,7 @@ const getProductToAdd = () => {
 /**
  * Checks if product's color and quantity are set
  * 
- * @param {*} productToAdd 
+ * @param { Object } productToAdd 
  * @returns { Boolean } 
  */
 
@@ -223,7 +222,7 @@ const productParamsAreSet = (productToAdd) => {
 
 
 /**
- * Adds the product to the cart, or update quantity if product already exists
+ * Adds the product to the cart, or updates quantity if product already exists
  * 
  * @param { Object } productToAdd 
  */
@@ -313,8 +312,6 @@ const addToLocalStorage = (productToAdd) => {
 const getProductStorageKey = (product) => {
     return `${product.id}-${product.color}`;
 }
-
-
 
 
 displayProductPage();

@@ -1,11 +1,3 @@
-const orderIdElement = document.querySelector("#orderId");
-const searchParams = getSearchParams();
-
-if(searchParams.has("orderId")) {
-    const orderId = searchParams.get("orderId");
-    orderIdElement.innerText = orderId;
-}
-
 /**
  * Gets the search parameters from the URL
  * 
@@ -17,3 +9,13 @@ const getSearchParams = () => {
     const searchParams = new URLSearchParams(currentUrl.search);
     return searchParams;
 }
+
+
+const orderIdElement = document.querySelector("#orderId");
+const searchParams = getSearchParams();
+
+if(searchParams.has("orderId")) {
+    const orderId = searchParams.get("orderId");
+    orderIdElement.innerText = orderId;
+}
+

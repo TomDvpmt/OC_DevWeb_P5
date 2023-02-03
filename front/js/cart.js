@@ -201,17 +201,40 @@ const arraySum = (array) => {
  */
 
 const setQuantityEventListener = () => {
+    const itemSettings = document.querySelector(".cart__item__content__settings");
+    const errorMsg = document.createElement("p");
+    errorMsg.classList.add("error-msg");
+    errorMsg.style.cssText = "color: yellow; margin-top: 1rem;";
     const itemQuantityElements = document.querySelectorAll(".itemQuantity");
+
     for(let itemQuantityElement of itemQuantityElements) {
         itemQuantityElement.addEventListener("change", (e) => {
-            displayCartTotalQuantity();
-            displayCartTotalPrice();
-            
-            const itemNewQuantity = parseInt(e.target.value);
-            updateItemQuantityInLocalStorage(itemQuantityElement, itemNewQuantity);
+            if(e.target.value > 0 && e.target.value <= 100) {
+                errorMsg.innerText = "";
+            }
+            else {
+                errorMsg.innerText = "La quantité doit être comprise entre 1 et 100.";
+                e.target.value = 1;
+            }
+            updateCartTotalsAndStorageQuantity(itemQuantityElement, e);
         })
     }
 };
+
+
+/**
+ * Updates cart's total quantity and total price, and the item's quantity in localStorage
+ * 
+ * @param { Integer } itemQuantityElement 
+ * @param { Event } e 
+ */
+
+const updateCartTotalsAndStorageQuantity = (itemQuantityElement, e) => {
+    displayCartTotalQuantity();
+    displayCartTotalPrice();
+    const itemNewQuantity = parseInt(e.target.value);
+    updateItemQuantityInLocalStorage(itemQuantityElement, itemNewQuantity);
+}  
 
 
 /**
@@ -395,7 +418,7 @@ const isValid = (inputName, stringToTest) => {
         "^([0-9]+[,]? )?([a-zà-ÿ-']+ )+[0-9]{4,5}$", "i"
     );
     const emailRegex = new RegExp(
-        "^[A-Za-z0-9-\._]+@([A-Za-z0-9_-]+\.)+[A-Za-z0-9]{2,4}$"
+        "^[\\w\\-\\.]+@([\\w\\-]+\\.)+[\\w\\-]{2,4}$" // double escapes because the RegExp is created by a string
     );
     const regexs = {
         firstName: firstNameRegex,
@@ -456,6 +479,7 @@ const sendOrderRequest = () => {
         })
         .then((response) => response.json())
         .then((data) => {
+            localStorage.clear();
             window.location.href = `confirmation.html?orderId=${data.orderId}`;
         })
         .catch(() => alert("Erreur serveur, impossible d'envoyer la commande."))

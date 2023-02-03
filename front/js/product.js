@@ -174,18 +174,30 @@ const translateColor = (color, langInitial, langFinal) => {
 /**
  * Sets a "click" event listener on the "Add to cart" button
  * On click :
- *   - if quantity and color are both set, adds the item to the cart and send user to cart.html
+ *   - if quantity and color are both set, adds the item to the cart and sends user to cart.html
  *   - else does nothing
  */
 
 const setAddToCartListener = () => {
+
+    const itemContent = document.querySelector(".item__content");
+    const errorMsg = document.createElement("p");
+    errorMsg.classList.add("error-msg");
+    errorMsg.style.color = "yellow";
+    itemContent.append(errorMsg);
+
     const addToCartButton = document.querySelector("#addToCart");
 
     addToCartButton.addEventListener("click", () => {
         const productToAdd = getProductToAdd();
+        
         if(productParamsAreSet(productToAdd)) {
+            errorMsg.innerText = "";
             addToCart(productToAdd);
             window.location.href = "cart.html";
+        }
+        else{
+            errorMsg.innerText = "Pour ajouter un produit au panier, vous devez choisir une couleur, ainsi qu'une quantité entre 1 et 100.";
         }
     });
 }
@@ -217,7 +229,7 @@ const getProductToAdd = () => {
  */
 
 const productParamsAreSet = (productToAdd) => {
-    return productToAdd.color !== "" && productToAdd.quantity !== "0";
+    return productToAdd.color !== "" && productToAdd.quantity > 0 && productToAdd.quantity <= 100;
 }
 
 
@@ -262,7 +274,7 @@ const isLastStorageKey = (key) => {
 
 
 /**
- * Updates quantity of the product to add :
+ * Updates quantity of the product in localStorage
  * 
  * @param { Object } productToAdd
  * @param { Object } storedProduct
